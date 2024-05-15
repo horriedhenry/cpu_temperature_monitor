@@ -65,12 +65,14 @@ void read_file(std::vector<std::string>& temperatures_vec, std::string& file_pat
         hours -= 12;
     }
 
-    std::string str_hour { std::to_string(hours) };
+    std::string str_hour {
+        (hours < 10 ? "0" : "") + std::to_string(hours)
+    };
     std::string str_minutes {
-        std::to_string(minutes) + (minutes < 10 ? "0" : "")
+        (minutes < 10 ? "0" : "") + std::to_string(minutes)
     };
     std::string str_seconds {
-        std::to_string(seconds) + (seconds < 10 ? "0" : "")
+        (seconds < 10 ? "0" : "") + std::to_string(seconds)
     };
 
     std::string log_prefix { str_hour + ":" + str_minutes + ":" + str_seconds };
