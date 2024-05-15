@@ -1,4 +1,5 @@
 #include <atomic>
+#include <ctime>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
@@ -25,7 +26,7 @@ void signal_handler(int signal) {
     }
 }
 
-void write_to_file(std::vector<std::string>& temps, std::string&& file_path)
+void write_to_file(std::vector<std::string>& temperature_vec, std::string&& file_path)
 {
     std::ofstream out_file(file_path, std::ios::app);
 
@@ -33,21 +34,49 @@ void write_to_file(std::vector<std::string>& temps, std::string&& file_path)
         exit(1);
     }
 
-    if (!temps.empty()) {
-        for (auto it = temps.begin(); it != temps.end(); ++it) {
+    if (!temperature_vec.empty()) {
+        for (auto it = temperature_vec.begin(); it != temperature_vec.end(); ++it) {
             out_file << *it << "\n";
         }
         out_file.close();
     }
 }
 
-void read_file(std::vector<std::string>& temps, std::string& file_path)
+void read_file(std::vector<std::string>& temperatures_vec, std::string& file_path)
 {
+    // get current time
+    std::time_t time_t { std::time(nullptr) };
+    std::tm* current_time { std::localtime(&time_t) };
+
+    // read file immedietly after opening the file. Just to make sure we record
+    // time just before opening the file..
     std::ifstream in_file(file_path);
     std::string line;
     std::getline(in_file, line);
-    temps.push_back(line.substr(0, 2));
     in_file.close();
+
+    int hours   { current_time->tm_hour };
+    int minutes { current_time->tm_min };
+    int seconds { current_time->tm_sec };
+
+    if (hours == 0) {
+        hours = 12;
+    } else if (hours > 12) {
+        hours -= 12;
+    }
+
+    std::string str_hour { std::to_string(hours) };
+    std::string str_minutes {
+        std::to_string(minutes) + (minutes < 10 ? "0" : "")
+    };
+    std::string str_seconds {
+        std::to_string(seconds) + (seconds < 10 ? "0" : "")
+    };
+
+    std::string log_prefix { str_hour + ":" + str_minutes + ":" + str_seconds };
+
+    std::string log { "[" + log_prefix + "] " + line.substr(0, 2) };
+    temperatures_vec.push_back(log);
 }
 
 int main (int argc, char *argv[])
@@ -69,7 +98,7 @@ int main (int argc, char *argv[])
         read_file(zone_6_temps, thermal_zone.thermal_zone5);
         read_file(zone_7_temps, thermal_zone.thermal_zone7);
 
-        if (seconds_count == 60) {
+        if (seconds_count == 30) {
             seconds_count = 0;
 
             write_to_file(zone_0_temps, "./thermal/thermal_zone0");
@@ -81,6 +110,7 @@ int main (int argc, char *argv[])
             zone_5_temps.clear();
             zone_6_temps.clear();
             zone_7_temps.clear();
+            return 0;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -91,6 +121,11 @@ int main (int argc, char *argv[])
     write_to_file(zone_5_temps, "./thermal/thermal_zone5");
     write_to_file(zone_6_temps, "./thermal/thermal_zone6");
     write_to_file(zone_7_temps, "./thermal/thermal_zone7");
+
+    zone_0_temps.clear();
+    zone_5_temps.clear();
+    zone_6_temps.clear();
+    zone_7_temps.clear();
 
     return 0;
 }
