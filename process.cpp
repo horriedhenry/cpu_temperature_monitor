@@ -20,7 +20,8 @@ int main (int argc, char *argv[])
     std::string line;
     std::vector<int> temps;
     while (std::getline(in_file, line)) {
-        temps.push_back(std::stoi(line));
+        // log : [04:17:59] 44
+        temps.push_back(std::stoi(line.substr(11)));
     }
 
     for (auto it = temps.begin(); it != temps.end(); ++it) {
