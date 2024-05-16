@@ -100,7 +100,7 @@ int main (int argc, char *argv[])
         read_file(zone_6_temps, thermal_zone.thermal_zone5);
         read_file(zone_7_temps, thermal_zone.thermal_zone7);
 
-        if (seconds_count == 30) {
+        if (seconds_count == 60) {
             seconds_count = 0;
 
             write_to_file(zone_0_temps, "./thermal/thermal_zone0");
@@ -112,7 +112,6 @@ int main (int argc, char *argv[])
             zone_5_temps.clear();
             zone_6_temps.clear();
             zone_7_temps.clear();
-            return 0;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
