@@ -100,7 +100,7 @@ int main (int argc, char *argv[])
         read_file(zone_6_temps, thermal_zone.thermal_zone5);
         read_file(zone_7_temps, thermal_zone.thermal_zone7);
 
-        if (seconds_count == 60) {
+        if (seconds_count == 120) {
             seconds_count = 0;
 
             write_to_file(zone_0_temps, "./thermal/thermal_zone0");
