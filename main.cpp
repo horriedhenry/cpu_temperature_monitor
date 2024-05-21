@@ -1,5 +1,7 @@
 #include <iostream>
 #include <ctime>
+#include <vector>
+#include <fstream>
 
 typedef struct Time
 {
@@ -34,13 +36,61 @@ Time get_time(std::tm* tm)
     return time;
 }
 
+class Temps
+{
+public:
+    std::vector<std::string> file_paths {
+        "/sys/class/thermal/thermal_zone0/temp",
+        "/sys/class/thermal/thermal_zone5/temp",
+        "/sys/class/thermal/thermal_zone6/temp",
+        "/sys/class/thermal/thermal_zone7/temp",
+    };
+
+    std::vector<std::string> temps_zone0;
+    std::vector<std::string> temps_zone5;
+    std::vector<std::string> temps_zone6;
+    std::vector<std::string> temps_zone7;
+
+    std::vector<std::vector<std::string>*> temperature_zones {
+        &temps_zone0,
+        &temps_zone5,
+        &temps_zone6,
+        &temps_zone7,
+    };
+
+    void print_temps()
+    {
+        for (auto vec_ptr : temperature_zones) {
+            for (auto it = vec_ptr->begin(); it != vec_ptr->end(); ++it) {
+                std::cout << *it << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    void read_file(std::string& file_path, std::vector<std::string>& vec_temps)
+    {
+        std::ifstream file(file_path);
+        std::string line;
+        if (file.is_open()) {
+            std::getline(file, line);
+            vec_temps.push_back(line.substr(0, 2));
+        } else {
+            return;
+        }
+        file.close();
+    }
+};
+
 int main (int argc, char *argv[])
 {
-    std::time_t time_t{std::time(nullptr)};
-    std::tm* tm {std::localtime(&time_t)};
-    Time time {get_time(tm)};
+    Temps temps;
 
-    std::string curr_time {time.time()};
-    std::cout << curr_time << std::endl;
+    temps.read_file(temps.file_paths[0], temps.temps_zone0);
+    temps.read_file(temps.file_paths[1], temps.temps_zone5);
+    temps.read_file(temps.file_paths[2], temps.temps_zone6);
+    temps.read_file(temps.file_paths[3], temps.temps_zone7);
+
+    temps.print_temps();
     return 0;
 }
