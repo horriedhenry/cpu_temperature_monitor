@@ -1,7 +1,11 @@
 #include <iostream>
 #include <ctime>
+#include <map>
+#include <sstream>
 #include <vector>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 typedef struct Time
 {
@@ -46,25 +50,37 @@ public:
         "/sys/class/thermal/thermal_zone7/temp",
     };
 
-    std::vector<std::string> temps_zone0;
-    std::vector<std::string> temps_zone5;
-    std::vector<std::string> temps_zone6;
-    std::vector<std::string> temps_zone7;
+    std::vector<std::string> temp_rec_zone0;
+    std::vector<std::string> temp_rec_zone5;
+    std::vector<std::string> temp_rec_zone6;
+    std::vector<std::string> temp_rec_zone7;
 
-    std::vector<std::vector<std::string>*> temperature_zones {
-        &temps_zone0,
-        &temps_zone5,
-        &temps_zone6,
-        &temps_zone7,
+    std::map<std::string, std::vector<std::string>*> temperature_records {
+        { "./thermal/thermal_zone0" , &temp_rec_zone0 },
+        { "./thermal/thermal_zone5" , &temp_rec_zone5 },
+        { "./thermal/thermal_zone6" , &temp_rec_zone6 },
+        { "./thermal/thermal_zone7" , &temp_rec_zone7 },
     };
 
-    void print_temps()
+    void write_temperature_records()
     {
-        for (auto vec_ptr : temperature_zones) {
-            for (auto it = vec_ptr->begin(); it != vec_ptr->end(); ++it) {
-                std::cout << *it << " ";
+        std::ofstream file;
+        std::stringstream str_stream;
+
+        for (auto itr = temperature_records.begin(); itr != temperature_records.end(); ++itr) {
+            for (const auto& str : *itr->second) {
+                str_stream << str << "\n";
             }
-            std::cout << std::endl;
+
+            file.open(itr->first, std::ios::app);
+            if (file.is_open()) {
+                file << str_stream.str();
+            } else {
+                return;
+            }
+            file.close();
+            str_stream.str("");
+            str_stream.clear();
         }
     }
 
@@ -86,11 +102,16 @@ int main (int argc, char *argv[])
 {
     Temps temps;
 
-    temps.read_file(temps.file_paths[0], temps.temps_zone0);
-    temps.read_file(temps.file_paths[1], temps.temps_zone5);
-    temps.read_file(temps.file_paths[2], temps.temps_zone6);
-    temps.read_file(temps.file_paths[3], temps.temps_zone7);
+    for (int i = 0; i < 10; i++) {
+        temps.read_file(temps.file_paths[0], temps.temp_rec_zone0);
+        temps.read_file(temps.file_paths[1], temps.temp_rec_zone5);
+        temps.read_file(temps.file_paths[2], temps.temp_rec_zone6);
+        temps.read_file(temps.file_paths[3], temps.temp_rec_zone7);
 
-    temps.print_temps();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    temps.write_temperature_records();
+
     return 0;
 }
