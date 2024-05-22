@@ -37,7 +37,7 @@ Time get_time(std::tm *tm)
     return time;
 }
 
-class Temps {
+class CpuTemps {
   public:
     std::vector<std::string> temp_rec_zone0;
     std::vector<std::string> temp_rec_zone5;
@@ -117,14 +117,14 @@ class Temps {
 
 int main(int argc, char *argv[])
 {
-    Temps temps;
+    CpuTemps cpu_temps;
     int seconds_count{0};
 
     while (true) {
-        temps.read_thermal_zones();
+        cpu_temps.read_thermal_zones();
 
         if (seconds_count == 60) {
-            temps.write_temperature_records();
+            cpu_temps.write_temperature_records();
             seconds_count = 0;
             return 0;
         }
