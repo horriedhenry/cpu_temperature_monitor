@@ -79,6 +79,7 @@ class CpuTemps {
             file.close();
             str_stream.str("");
             str_stream.clear();
+            itr->second->clear();
         }
     }
 
@@ -123,10 +124,9 @@ int main(int argc, char *argv[])
     while (true) {
         cpu_temps.read_thermal_zones();
 
-        if (seconds_count == 60) {
+        if (seconds_count == 120) {
             cpu_temps.write_temperature_records();
             seconds_count = 0;
-            return 0;
         }
 
         seconds_count++;
